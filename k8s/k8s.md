@@ -36,6 +36,28 @@ spec:
 
 많은 서비스가 하나 이상의 포트를 노출해야 하기 때문에, 쿠버는 서비스 오브젝트에서 다중 포트 정의를 지원. 각 포트는 동일 혹은 다른 프로토콜로 정의될 수 있음.  
 
- 
+### 서비스 찾기
+쿠버네티스는 서비스를 찾는 두 가지 기본 모드를 지원. 환경 변수와 DNS
+#### 환경 변수
+파드가 노드에서 실행될 때, kubelet은 각 활성화된 서비스에 대해 환경 변수 세트를 추가한다. 도커 링크 호환 변수와 보다 간단한 
+`{SVCNAME}_SERVICE_HOST` 및 `{SVCNAME}_SERVICE_PORT` 변수를 지원하고, 이때 서비스 이름은 대문자이고 대시는 밑줄로 변환된다.
+
+예를 들어, TCP 포트 6379를 개방하고 클러스터 IP 주소 10.0.0.11이 할당된 서비스 `redis-master`는, 다음 환경 변수를 생성한다.
+```
+REDIS_MASTER_SERVICE_HOST=10.0.0.11
+REDIS_MASTER_SERVICE_PORT=6379
+REDIS_MASTER_PORT=tcp://10.0.0.11:6379
+REDIS_MASTER_PORT_6379_TCP=tcp://10.0.0.11:6379
+REDIS_MASTER_PORT_6379_TCP_PROTO=tcp
+REDIS_MASTER_PORT_6379_TCP_PORT=6379
+REDIS_MASTER_PORT_6379_TCP_ADDR=10.0.0.11
+```
+> **참고:**  
+> 서비스에 접근이 필요한 pod가 있고, 환경 변수를 사용해 포트 및 클러스터 IP를 클라이언트 pod에 부여하는 경우, 클라이언트 파드가 
+> 생성되기 **_전에_** 서비스를 만들어야 한다. 그렇지 않으면, 해당 클라이언트 pod는 환경 변수를 생성할 수 없다.
+
+
+
+
 
 
