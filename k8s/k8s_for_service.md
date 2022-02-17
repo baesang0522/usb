@@ -1,4 +1,4 @@
-Kubernetes 정리
+Kubernetes 정리 1
 =====
 K8S 사용하면서 에러 혹은 중요한 사항 정리용
 -----
