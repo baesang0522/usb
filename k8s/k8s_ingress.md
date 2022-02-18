@@ -26,4 +26,29 @@ service의 type을 `NodePort`, 또는 `ExternalIP`, `MetalLB`등을 대신 사�
 만약 클래스를 정의하지 않으면, 클라우드 제공자는 기본 인그레스 컨트롤러를 사용할 수 있다.
 https://kubernetes.io/ko/docs/concepts/services-networking/ingress-controllers/ 참조
 
-### 인그레스
+### 인그레스  
+```
+최소한의 인그레스 리소스 예제:
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: minimal-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /testpath
+        pathType: Prefix
+        backend:
+          service:
+            name: test
+            port:
+              number: 80
+```
+
+
+
+
