@@ -175,6 +175,9 @@ $ kubeadm join 192.168.0.101:6443 --{token made by master}
 **_노드들 클러스터 참여 확인_**
 !['kubectl_get_nodes_2'](./assets/kubectl_get_nodes_2.png)  
 
+#### 노드 라벨 설정
+`$ kubectl label node k8s-node1 node-role.kubernetes.io/worker=worker`  
+`$ kubectl label node k8s-node2 node-role.kubernetes.io/worker=worker`
 
 
 
