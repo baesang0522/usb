@@ -172,7 +172,7 @@ $ kubeadm join 192.168.0.101:6443 --{token made by master}
 > `kubectl get nodes`  
 > 명령어 차례로 실행
 
-**_오류 해결 후 노드들 클러스터 참여 확인_**
+**_노드들 클러스터 참여 확인_**
 !['kubectl_get_nodes_2'](./assets/kubectl_get_nodes_2.png)  
 
 
