@@ -71,9 +71,9 @@ sysctl --system
 
 ```
 # cat <<EOF >> /etc/hosts
-{ip} k8s-master
-{ip} k8s-node1
-{ip} k8s-node2
+{master_ip} k8s-master
+{node1_ip} k8s-node1
+{node2_ip} k8s-node2
 EOF
 ```
 
