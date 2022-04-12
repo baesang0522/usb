@@ -1,6 +1,5 @@
-BERT
-=====
 Attention to Bert
+=====
 -----
 ### 1. Attention mechanism
 #### 1-1 Attention의 아이디어  
@@ -60,18 +59,62 @@ attention value at는 종종 인코더의 문맥을 포함하고 있다고 하�
 st와 attention value를 concat 하여 vt로 만듦. 이 vt는 yhat 예측 연산의 입력으로 사용됨.  
 
 ### 2. Transformer  
+```
+dmodel = 512
+인코더와 디코더에서 정해진 입력과 출력의 크기. 층 사이에서 이동할 때에도 이 크기를 유지함  
+
+num_layer = 6
+인코더와 디코더가 총 몇층으로 구성되었는지 의미. 논문에서는 6(인코더 6, 디코더 6)
+
+num_head = 8
+트랜스포머는 병렬로 어텐션을 수행하고 결과값을 다시 하나로 합치는데, 이 때 이 병렬의 개수
+
+dff = 2048
+트랜스포머 내부에는 피드포워드 신경망이 존재하는데 해당 신경망의 은닉층의 크기. 입력과 출력층은 512. 
+```
 <그림 6>  
-!['transformer'](./assets/transformer.png)  
+!['transformer'](./assets/transformer.png)
+!['en2de'](./assets/en2de.png)
 인코더와 디코더가 6개씩 존재하는 트랜스포머의 구조.    
 
 <그림 7>  
 !['transformer2'](./assets/transformer2.png)  
 
-#### 2-1 Positional encoding  
-!['pos_func'](./assets/pos_func.png)  
+#### 2-1 Positional encoding
+!['pe_paper'](./assets/pe_paper.png)
+!['pe_formula'](./assets/pe_formula.png)  
 <그림 8>  
 !['pos_encoding'](./assets/pos_encoding.png)  
-pos 는 입력 문장에서의 임베딩 벡터의 위치를 나타내며, i는 임베딩 벡터 내의 차원의 인덱스를 의미. 짝수 -> 사인함수 홀수 -> 코사인함수. 
+pos 는 입력 문장에서의 임베딩 벡터의 위치를 나타내며, i는 임베딩 벡터 내의 차원의 인덱스를 의미.  
+짝수(2i) -> 사인함수  
+홀수(2i+1) -> 코사인함수  
+positional encoding 값을 더해 주면, 문장 내 같은 단어라도 임베딩 벡터 값이 다르게 됨.  
+
+#### 2-2 Attention
+Transformer 에는 세 가지 종류의 attention이 사용됨. encoder self-attention, masked decoder self-attention,
+ encoder-decoder attention. 첫 번째는 인코더층에서, 두번째와 세번째는 디코더층에서 사용.  
+
+* self-attention  
+<그림 9>  
+!['self_attention'](./assets/self_attention.png)   
+self-attention이라 함은 query, key, value가 동일한 경우를 의미함. 여기서 동일이란 벡터의 값이 같은 것이 아닌, 
+벡터의 출처가 같다는 의미.
+```
+Q = Query : 입력 문장의 모든 단어 벡터들
+K = Keys : 입력 문장의 모든 단어 벡터들
+V = Values : 입력 문장의 모든 단어 벡터들
+```
+* Q, K, V 벡터 얻기  
+self-attention은 인코더의 초기 입력인 d-model의 차원을 가지는 단어 벡터들을 사용한 것이 아닌 각 단어 벡터들로부터
+Q, K, V 벡터를 얻음. 이 Q, K, V 벡터들은 dk(dmodel/num_head, 둘 다 하이퍼파라미터. 논문에서는 각각 512, 8)만큼의 차원을 가지며, 
+이는 같은 단어 벡터에 서로 다른 가중치 행렬(Wq, Wk, Wv)을 선형결합함으로서 얻을 수 있다.  
+이 벡터들을 이용하여 attention을 병렬(num_head)로 진행한 후 모든 attention head들을 연결하여 가중치 행렬 W0를 곱한다.
+여기서의 결과가 self-attention의 최종 결과물이 된다.
+
+#### 2-3 Position-wise FFNN
+2개의 hidden layer를 가지고 있는 네트워크. position 마다 즉, 개별 단어마다 적용했기 때문에 position-wise.
+
+
 
 
 
