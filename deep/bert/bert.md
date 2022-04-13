@@ -9,7 +9,7 @@ Attention to Bert
 #### 1-2 Attention Function  
 #####**Attention(Q, K, V) = Attention Value**
 
-어텐션 함수는 주어진 'Query' 에 대해 모든 'Key' 와의 유사도를 각각 구함. 구해낸 유사도를 키와 매핑되어 있느 각각의 'Value' 에 반영해줌.
+어텐션 함수는 주어진 'Query' 에 대해 모든 'Key' 와의 유사도를 각각 구함. 구해낸 유사도를 키와 매핑되어 있는 각각의 'Value' 에 반영해줌.
 유사도가 반영된 'Value' 를 모두 더해 리턴. 이 리턴되는 값이 Attention Value. 
 ```
 Q = Query : t 시점의 디코더 셀에서의 은닉 상태
@@ -115,10 +115,65 @@ Q, K, V 벡터를 얻음. 이 Q, K, V 벡터들은 dk(dmodel/num_head, 둘 다 �
 2개의 hidden layer를 가지고 있는 네트워크. position 마다 즉, 개별 단어마다 적용했기 때문에 position-wise.
 
 
+### 3. BERT  
+<그림 10>  
+!['bert_structure'](./assets/bert_structure.png)
+BERT(Bidirectional Encoder Representations from Transformers)
+```
+BERT-Base : L=12, D=768, A=12 : 110M params
+BERT-Large : L=24, D=1024, A=16 : 340M params
+```
 
+#### 3-1 BERT's Embedding
+* Position Embedding  
+<그림 11>  
+!['bert_pe'](./assets/bert_pe.png)  
+기존 transformer와는 다르게 position embedding에 sin, cos 함수를 사용하지 않고 학습을 통해서 얻는 position embedding 사용. 
+position embedding 벡터들을 기존 단어 임베딩 벡터들에 각각 더해주는 것은 동일.
+  
 
+* Segement Embedding  
+<그림 12>  
+!['segment_embedding'](./assets/segment_embedding.png)  
+  BERT에서는 임베딩 단계에서 하나의 층이 추가됨. 문장 구분을 위한 segment embedding. BERT를 활용한 감성 분류 태스크에서는 문장 분류가 
+  필요하지 않아 fine-tuning 단계에서 Sentence 0 임베딩만을 더해주기도 함. 
+  
+#### 3-2 BERT's pre-training
+<그림 13>  
+!['model_compare'](./assets/model_compare.png)  
+  ```
+  BERT: 양방향
+  OpenAI GPT: 단방향
+  ELMo: 양방향  
+  ```
+BERT 의 pretraining은 크게 두 가지로 나뉨. 마스크드 언어 모델, 다음 문장 예측
 
+* Masked LM  
+입력 텍스트의 15%의 단어를 랜덤으로 마스킹한([MASK] 토큰으로 변경) 후 이 가려진 단어들(masked words)을 예측하도록 함. 마스킹된 모든 
+  단어들을 [MASK]토큰으로 변경하는 것이 아닌 80%만 토큰변경을 실시하고 10%는 다른 단어로 변경, 10%는 동일하게 두게 됨. [MASK] 토큰만
+  사용할 시 파인튜닝 단계에서는 이 토큰이 없기 때문에 문제가 발생할 수 있기 때문.  
+    
+  <그림 14>  
+  !['masked_lm'](./assets/masked_lm.png)  
+  입력 문장은 'my dog is cut. he likes playing'.  
+  >dog -> [MASK]  
+  he -> king  
+  play -> 유지  
+  
 
+* Next Sentence Prediction(NSP, 다음 문장 예측)  
+BERT는 두 개의 문장을 준 후에 이 문장이 이어지는 문장인지 아닌지를 맞추는 방식으로 훈련시킴. 50:50 비율로 실제 이어지는 두 개의 문장과 
+  랜덤으로 이어붙인 두 개의 문장을 주고 훈련시킴.
+  > * 이어지는 문장의 경우  
+    Sentence A : The man went to the store.  
+    Sentence B : He bought a gallon of milk.  
+    Label = IsNextSentence  
+  
+  > * 이어지는 문장이 아닌 경우  
+    Sentence A : The man went to the store.  
+    Sentence B : dogs are so cute.  
+    Label = NotNextSentence  
+  
 
 
 
