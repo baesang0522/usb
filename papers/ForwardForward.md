@@ -71,7 +71,37 @@ similar short range correlation 을 가진 이미지를 만들어야 함(corrupt
 ![figure1](./images/figure1.png)  
 
   
-fully connected 에선 test error 1.37%, local receptive fields(without weight-sharing) 에선 1.16% 달성
+fully connected 에선 test error 1.37%, local receptive fields( without weight-sharing) 에선 1.16% 달성.  
+  
+###3.3 A simple supervised example of FF
+라벨 정보 없이 숨겨진 정보를 학습하는 것은 다양한 task 를 수행하는 큰 모델에서 합리적임. 비지도학습으로 잡다한 feature 들을 선발하고 
+다양한 task 에서 유용한 정보들을 모델에서 선별해서 사용할 수 있기 때문(3.2 unsupervised). 하지만 하나의 task 를 수행하는 모집단의 분포를 모르는
+작은 모델에선 지도학습을 사용하는 것이 합리적임.  
+  
+input 에 라벨을 포함(positive-correct, negative-incorrect)시켜서 학습시키는 방법으로 이를 달성할 수 있음. 라벨 분류에 필요없는 정보는 
+모델이 무시하게 될 것임.  
+  
+60 epochs 에서 test error 1.36%(FF), backpropagation 은 20 epochs 에서 비슷한 성능 달성. Learning rate 를 2배로 높였을 땐 
+60 epochs 에서 test error 1.46%.
+  
+각 이미지의 처음 10 픽셀에는 라벨 정보(MNIST 므로 10개. 각 0.1)가 들어감.  
+![figure2](./images/figure2.png)
+
+첫번째 히든 레이어를 제외한 나머지 히든 레이어에는 훈련시 학습된 softmax 에 입력값들이 들어감. 예측이 빠르지만 차선책. 첫번째 히든 레이어를 제외한
+나머지 계층에서 나온 goodness 를 축적하여 판별하는 것이 베스트. 라벨별로 이 학습 방법을 사용하고(MNIST 므로 X 10번) 중립라벨이 hard negative label 
+을 pick 하는 방식으로 하면 epoch 수가 33% 가량 높아짐(학습이 더 어렵다는 의미인듯).
+  
+data augmentation 사용 500 epochs 학습 시 0.64% test error 발생. CNN(using backpropagation)과 성능 비슷
+###3.4 Using FF to model top-down effects in perception
+FF 알고리즘의 경우 한번에 하나의 레이어에서 탐욕적으로 학습하기 때문에 뒤쪽 레이어에서 학습된 것이 앞쪽 레이어에 영향을 줄 수 없음.  
+
+이러한 문제점을 해결하기 위해 Multi layer RNN 처럼 네트워크를 구성하기로 함(input 되는 image 를 video 처럼 생각하여).  
+![figure3](./images/figure3.png)  
+8번 iteration 을 돌리고, 3~5 번의 iteration 에서 가장 높은 goodness 를 보이는 label 을 선택하는 방식으로 1.31% 의 테스트 에러를 얻음. 
+
+
+
+
 
 
 
