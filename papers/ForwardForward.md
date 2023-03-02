@@ -98,6 +98,7 @@ FF 알고리즘의 경우 한번에 하나의 레이어에서 탐욕적으로 �
 이러한 문제점을 해결하기 위해 Multi layer RNN 처럼 네트워크를 구성하기로 함(input 되는 image 를 video 처럼 생각하여).  
 ![figure3](./images/figure3.png)  
 8번 iteration 을 돌리고, 3~5 번의 iteration 에서 가장 높은 goodness 를 보이는 label 을 선택하는 방식으로 1.31% 의 테스트 에러를 얻음. 
+Negative data 는 single forward pass 후 incorrect classes 확률을 보고 결정하는 방식으로 결정 됨. 
 
 
 
