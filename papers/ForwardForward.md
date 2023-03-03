@@ -91,14 +91,63 @@ input 에 라벨을 포함(positive-correct, negative-incorrect)시켜서 학습
 나머지 계층에서 나온 goodness 를 축적하여 판별하는 것이 베스트. 라벨별로 이 학습 방법을 사용하고(MNIST 므로 X 10번) 중립라벨이 hard negative label 
 을 pick 하는 방식으로 하면 epoch 수가 33% 가량 높아짐(학습이 더 어렵다는 의미인듯).
   
-data augmentation 사용 500 epochs 학습 시 0.64% test error 발생. CNN(using backpropagation)과 성능 비슷
+data augmentation 사용 500 epochs 학습 시 0.64% test error 발생. CNN(using backpropagation)과 성능 비슷  
+
 ###3.4 Using FF to model top-down effects in perception
 FF 알고리즘의 경우 한번에 하나의 레이어에서 탐욕적으로 학습하기 때문에 뒤쪽 레이어에서 학습된 것이 앞쪽 레이어에 영향을 줄 수 없음.  
 
 이러한 문제점을 해결하기 위해 Multi layer RNN 처럼 네트워크를 구성하기로 함(input 되는 image 를 video 처럼 생각하여).  
 ![figure3](./images/figure3.png)  
 8번 iteration 을 돌리고, 3~5 번의 iteration 에서 가장 높은 goodness 를 보이는 label 을 선택하는 방식으로 1.31% 의 테스트 에러를 얻음. 
-Negative data 는 single forward pass 후 incorrect classes 확률을 보고 결정하는 방식으로 결정 됨. 
+Negative data 는 single forward pass 후 incorrect classes 확률을 보고 생성하는 방식으로 결정 됨. 이 방식은 학습을 효율적이게 함.
+
+###3.5 Using predictions from the spatial context as a teacher
+top-down 입력은 이미지의 더 넓은 부분을 보고 판단하는 것. bottom-up 방식은 이미지의 좁은 부분을 보고 판단. 따라서 top-down 방식은 
+bottom-up 방식의 contextual prediction 이라고 볼 수 있음(figure3 에서 내려오는 빨간 화살표, 올라가는 파란 화살표). 따라서 top-down 은
+bottom-up 에서 올라오는 input 에서 특징 예측하는 것을 배울 것이고, 목적함수가 low squared 로 바뀐다면(positive 예측 못하게) top-down 은
+bottom-up 에서 올라오는 input 을 무시하는 것을 배울 것. layer normalization 은 다음 레이어로 전달되는 정보량이 많아지게 함. 
+노이즈에 강해짐.
+
+###4. Experiments with CIFAR-10  
+CIFAR-10 데이터셋을 이용한 테스트. 32*32*3 형태.  
+![table1](./images/table1.png)  
+기본 DNN + weight decay. test 시 single forward pass(학습된 softmax 사용, table1 상의 one-pass softmax)는 빠르지만 
+반복-평균(goodness 평균)보단 test loss 가 높았다. 또한 backpropagation 은 training loss 가 FF 보다 빠르게 감소(학습이 빨랐다?)했다.
+
+###5. Sleep
+biological model 로서의 FF 알고리즘에 대한 해결점. positive pass 와 negative pass 를 분리하면 어떤 효과가 날지 등.
+
+###6. How FF relates to other contrastive learning techniques
+###6.1 Relationship to Boltzmann Machines
+[볼츠만 머신 설명](https://helpingstar.github.io/dl/other_network/)  
+
+large network 에서 균형 상태에 도달하기 어려운 등의 단점에도 불구하고 볼츠만 머신에선 forward-backward 프로세스를 iteration 으로 대체
+한다는 것에 의의가 있음.  
+FF 알고리즘은 볼츠만 머신의 Contrastive learning 기법과 local goodness 함수(볼츠만 머신의 energy 계산보다 다루기 쉬운)를 결합함
+
+
+###6.2 Relationship to Generative Adversarial Networks
+Generative Adversarial Network(GAN)은 생성모델과 식별모델이 구분된 생성모델. 두 개체가 경쟁하며 진짜같은 데이터를 생성해냄. 
+multilayer backpropagation 사용. 학습이 까다로움.  
+FF 알고리즘은 모든 히든 레이어에서 탐욕적 선택을 하는(positive 인지 negative 인지 판단하는) GAN 의 특이케이스라고 볼 수 있는데 
+이런 기능을 함으로서 역전파를 이용, 식별모델을 따로 학습할 필요가 없어짐. 생성모델도 역전파를 이용하여 학습할 필요가 없는데 생성을 위한 
+특징(representative)을 자체 학습하는 것 보다 식별모델에서 학습된 특징을 가져다가 학습하면 그만이기 때문. 생성모델이 학습해야 
+하는 부분은 "이 특징에서 어떻게 데이터를 만들어낼 수 있는가" 임. 만들어 냈다면 softmax 의 logit 을 계산하기 위한 linear transform 에서는
+역전파가 필요가 없음(학습할 필요가 없음). FF 알고리즘은 두 모델에서 같은 특징을 이용하기 때문에 
+한 모델이 다른 모델에 비해 빨리 학습하는 GAN 의 문제점을 해결할 수 있음.
+
+###6.3 Relationship to contrastive methods that compare representations of two different image crops
+현재 contrastive method 를 사용한 image crop 알고리즘 중 하나인 SimCLR 과 FF 와의 비교. FF 가 비교 우위에 있다는 내용. 
+이 부분은 관심이 없어 pass 함
+
+###6.4 A problem with stacked contrastive learning
+Restricted Boltzmann machines(RBM), stacked autoencoder 등 first layer 에서 특징을 잡아내고 이 특징이 그대로 다음 레이어 input으로
+들어가는 알고리즘등이 있음. 
+
+
+
+
+
 
 
 
