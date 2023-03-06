@@ -142,7 +142,40 @@ FF 알고리즘은 모든 히든 레이어에서 탐욕적 선택을 하는(posi
 
 ###6.4 A problem with stacked contrastive learning
 Restricted Boltzmann machines(RBM), stacked autoencoder 등 first layer 에서 특징을 잡아내고 이 특징이 그대로 다음 레이어 input으로
-들어가는 알고리즘등이 있음. 
+들어가는 알고리즘등이 있음. random noise 를 포함한 이미지를 random weight matrix 에 통과시킬 때, output 벡터들은 실 데이터 보단
+weight matrix 와 상관이 더 큼. 비지도 학습이 학습 데이터 상에서 어떤 구조를 발견했다 하더라도 이게 실 세계에서도 나타나는 특징이라곤 
+할 수 없음 -> fatal flaw.  
+  
+positive, negative data 의 확률분포를 비교(contrastive)하는 일반 Boltzmann machines 에선 이런 문제점을 dealing 할 수 있었음.
+
+###7. Learning fast and slow
+FF 알고리즘에서 weight 업데이트는 layer normalized output 을 변경시키지 않음. 이는 동시다발적인 weight 업데이트가 가능하게 하는데
+earlier layer 의 값의 변경이 later layer 의 output 값에 영향을 미치지 않기 때문.  
+Backpropagation 기법과 다르게 FF 알고리즘을 이용한다면 레이어들 중간에 기존 FF 알고리즘으로 학습된 layer(black box)들을 넣을 수 있다는 점.
+이 방법을 쓰면 black box 레이어가 일정하다는 가정하에 "outer loop" FF 알고리즘은 새로운 데이터에 빠르게 적응을 할 것이라고 함. longer
+timescale 에서도 성능이 향상될 것이라고 예상.
+
+###8. The relevance of FF to analog hardware
+기존 forward - backward 방식에선 빠른 계산 A-to-D converter 가 필요했음. Forward - Forward 방식에선 필요 없음.
+
+###9. Mortal Computation
+기존 컴퓨터 사이언스에선 프로그램과 하드웨어를 분리해서 생각하였음. 같은 프로그램, 같은 weights 는 다른 디바이스에서 돌아가야함.
+이는 병행 프로그래밍 등 많은 장점이 있었음. 이러한 사고방식(program immortality)을 벗어난다면 하드웨어 구성에 드는 에너지들을 줄일 
+수 있음(모든 것을 좋은 하드웨어로 구성할필요 없다는 의미인듯). 각각의 하드웨어에서 각각의 특징을 잡아 낼 테고 각각의 특징은 고유함(mortal).  
+  
+image 분류에서 사실 우리가 진짜로 궁금한건 픽셀간의 function 의 구조이지, 그 안의 parameter 가 아닌 것처럼. function 을 전달하면
+다른 하드웨어에서 같은 오류(e.g. MNIST 에서 5를 6이라고 하는 경우, 하드웨어만 다를 시)도 발생시키지 않을 것임. 이 프로세스는 older model
+이 new model 에게 어떻게 생각하는지 전달하는 것과 같음(teaching).  
+  
+###10. Future work
+FF 알고리즘은 지금 막 시작된 개념임. 다음과 같은 의문사항이 남았음
+* 과연 FF 가 비지도 생성모델에서 필요한 충분히 좋은 negative data 를 잘 만들어 낼까?
+* best goodness function 이 뭘까? 최근에 했던 실험에서는 그냥 minimizing unsquared for positive data 가 더 좋았음(and maximizing 
+  squared for negative data).
+* best 활성화 함수는 뭘까? 본 연구에서는 ReLU 만 사용해봄
+* (image)부분데이터에서 각 영역에 맞는 많은 goodness function 을 사용 가능할까? 이게 가능하다면 훈련이 매우 빨라질 것
+등등..
+  
 
 
 
