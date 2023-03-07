@@ -7,9 +7,7 @@ The Forward-Forward Algorithm
 
 각 네트워크 레이어는 목적함수를 가지고 있고 positive data에는 좋은 점수, negative data에는 낮은 점수를 그 목표로 함. 
 positive way 와 negative way 가 분리될 수 있다면 negative way 는 오프라인으로 할 수 있고, 미분하느라(backpropagation) 
-시간을 허비하지 않을 수 있음(빠름) <br>
-
-<br>
+시간을 허비하지 않을 수 있음(backward 하느라 학습을 멈추지 않아도 됨) <br>
 
 ##1. Backpropagation의 문제점
 * Stochastic gradient descent는 딥러닝의 성공에 많은 영향을 끼침
@@ -32,8 +30,7 @@ FF 알고리즘은 [볼츠만 머신](https://idplab-konkuk.tistory.com/14) 과 
 forward-backward 방식을 대체하기 위해 제안되었으며 두 개의 forward(positive, negative pass)는 같은 방향으로, 다른 데이터를 가지고, 
 다른 목적을 위해 forward pass 됨.
 positive 는 real data 를 이용하여 각 레이어의 weight 를 모델 성능(goodness)을 올리기 위해 pass 되고 negative 는 "negative data"를 
-이용하여 각 히든 레이어의 성능을 
-낮추기 위해 pass 됨. 본 논문에선 두가지 성능측정 방법을 살펴봄.   
+이용하여 각 히든 레이어의 성능을 낮추기 위해(과적합 방지?) pass 됨. 본 논문에선 두가지 성능측정 방법을 살펴봄.   
 ```
 1. sum of squared neural activities
 2. negative sum of squared neural activities.
@@ -87,7 +84,7 @@ input 에 라벨을 포함(positive-correct, negative-incorrect)시켜서 학습
 ![figure2](./images/figure2.png)
 
 첫번째 히든 레이어를 제외한 나머지 히든 레이어에는 훈련시 학습된 softmax 에 입력값들이 들어감. 예측이 빠르지만 차선책. 첫번째 히든 레이어를 제외한
-나머지 계층에서 나온 goodness 를 축적하여 판별하는 것이 베스트. 라벨별로 이 학습 방법을 사용하고(MNIST 므로 X 10번) 중립라벨이 hard negative label 
+나머지 계층에서 나온 goodness 를 축적하여 판별하는 것이 베스트. 라벨별로 이 학습 방법을 사용하고(MNIST 이므로 X 10번) 중립라벨이 hard negative label 
 을 pick 하는 방식으로 하면 epoch 수가 33% 가량 높아짐(학습이 더 어렵다는 의미인듯).
   
 data augmentation 사용 500 epochs 학습 시 0.64% test error 발생. CNN(using backpropagation)과 성능 비슷  
