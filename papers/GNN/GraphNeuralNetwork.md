@@ -139,25 +139,3 @@ node 들의 특징을 aggregate 한 값이 됨. -> 정보 보존 이라고 생�
 
 GNN layer 는 다양한 알고리즘이 적용 가능함. CNN 같은 isotropic 한 알고리즘이나 Attention 같은 anisotropic
 알고리즘 등.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
