@@ -118,7 +118,7 @@ assert(ND_GCN[0, 0] == ND_GNN[0, 0] * D_rec[0, 0])
 이 Degree matrix 를 계산에 추가한 식은 다음과 같다.
 ![formulated_gcn](./gnn_images/formulated_GCN.png)  
 업데이트 된 node 는(h_i^l+1) linear projection 결과(U^l) 와 해당 노드의 degree matrix(diag.)와 이웃 
-노드들의 행렬곱 결과임.
+노드들의 행렬곱 결과임. N 은 no. of node's neighbor
 
 ### 4. Relational Graph Convolutional Networks(R-GCNs)
 지금까지의 GCN 에선 undirected and no-typed graph 를 가정하였음.   
@@ -142,6 +142,8 @@ projection step 은 단순 weight matrix 와의 행렬곱이 아닌 상기된 ba
 2. 1 단계의 output * projection output 의 tensor 곱
 
 ```python
+import numpy as np
+
 # print(X)
 [[0., 0., 1., 0., 0.]  # Node 1 
  [0., 1., 0., 0., 0.]
@@ -176,21 +178,101 @@ W_rels = np.concatenate((W_rel1, W_rel2))
 W_rels = np.reshape(W_rels, (num_rels, n, h))
 # print(W_rels)
 [[[-0.46378913, -0.09109707, 0.52872529]
- [0.03829597, 0.22156061, -0.2130242]
- [0.21535272, 0.38639244, -0.55623279]
- [0.28884178, 0.56448816, 0.28655701]
- [-0.25352144, 0.334031, -0.45815514]],
+  [0.03829597, 0.22156061, -0.2130242]
+  [0.21535272, 0.38639244, -0.55623279]
+  [0.28884178, 0.56448816, 0.28655701]
+  [-0.25352144, 0.334031, -0.45815514]],
  [[0.22946783, 0.4552118, 0.15387093]
- [0.15100992, 0.073714, 0.01948981]
- [0.34262941, 0.11369778, 0.14011786]
- [0.25087085, 0.03614765, 0.29131763]
- [0.081897, 0.29875971, 0.3528816]]]
+  [0.15100992, 0.073714, 0.01948981]
+  [0.34262941, 0.11369778, 0.14011786]
+  [0.25087085, 0.03614765, 0.29131763]
+  [0.081897, 0.29875971, 0.3528816]]]
 
 ### Linear transformation with batch matrix multiplication (r, n, h)
 L_0_rels = np.matmul(X, W_rels)
 # print(L_0_rels)
+[[[0.21535272, 0.38639244, -0.55623279]  # Node 1 (3rd row of W_rel1)
+  [0.03829597, 0.22156061, -0.2130242]
+  [-0.25352144, 0.334031, -0.45815514]
+  [-0.46378913, -0.09109707, 0.52872529]
+  [0.28884178, 0.56448816, 0.28655701]],
+ [[0.34262941, 0.11369778, 0.14011786]  # Node 1 (3rd row of W_rel2)
+  [0.15100992, 0.073714, 0.01948981]
+  [0.081897, 0.29875971, 0.3528816]
+  [0.22946783, 0.4552118, 0.15387093]
+  [0.25087085, 0.03614765, 0.29131763]]]
 
+### Adjacency matrix of relation number 1 (n, n)
+A_rel1 = np.random.randint(2, size=(n, n))
+np.fill_diagonal(A, 0)  # No self_loop
+# print(A_rel1)
+[[0, 1, 1, 1, 1]  # Connections to Node 1 with Rel 1
+ [1, 1, 0, 0, 1]  # Connections to Node 2 with Rel 1
+ [1, 0, 0, 1, 0]
+ [0, 0, 1, 1, 1]
+ [1, 1, 0, 1, 0]]
+
+### Adjacency matrix of relation number 2 (n, n)
+A_rel2 = np.random.randint(2, size=(n, n))
+np.fill_diagonal(A_rel2, 0)  # no self loop
+A_rel2[A_rel2 > 1] = 0
+[[0, 0, 0, 1, 0]  # Connections to Node 1 with Rel 2
+ [1, 0, 0, 0, 0]  # Connections to Node 2 with Rel 2
+ [1, 0, 0, 1, 1]
+ [0, 0, 0, 0, 0]
+ [0, 1, 0, 0, 0]]
+
+### Tensor including both adjacency matrices (r, n, n)
+A_rels = np.concatenate((A_rel1, A_rel2))
+A_rels = np.reshape(A_rels, (num_rels, n, n))
+# print(A_rels)
+[[[0, 1, 1, 1, 1] # Connections to Node 1 with Rel 1
+  [1, 1, 0, 0, 1]
+  [1, 0, 0, 1, 0]
+  [0, 0, 1, 1, 1]
+  [1, 1, 0, 1, 0]],
+ [[0, 0, 0, 1, 0] # Connections to Node 2 with Rel 2
+  [1, 0, 0, 0, 0]
+  [1, 0, 0, 1, 1]
+  [0, 0, 0, 0, 0]
+  [0, 1, 0, 0, 0]]]
+
+### (GCN) Neighborhood diffusion for each typed edge (r, n, h)
+ND_GCN = np.matmul(A_rels, L_0_rels)
+# print(ND_GCN)
+[[[-0.39017282,  1.0289827,   0.14410296] # Updated Node 1 with Rel 1
+  [ 0.54249047,  1.17244121, -0.48269997]
+  [-0.24843641,  0.29529538, -0.0275075 ]
+  [-0.42846879,  0.80742209,  0.35712716]
+  [-0.21014043,  0.51685598, -0.2405317 ]],
+ [[ 0.22946783,  0.4552118,   0.15387093] # Updated Node 1 with Rel 2
+  [ 0.34262941,  0.11369778,  0.14011786]
+  [ 0.82296809,  0.60505722,  0.58530642]
+  [ 0.,          0.,          0.        ]
+  [ 0.15100992,  0.073714,    0.01948981]]]
+
+### (R_GCN) Aggregation of GCN (n, h)
+r_gcn = np.sum(ND_GCN, axis=0)
+# print(r_gcn)
+[[-0.16070499,  1.48419449,  0.29797389] # Updated Node 1(Rel 1 + Rel 2)
+ [ 0.88511988,  1.28613899, -0.34258211]
+ [ 0.57453168,  0.9003526,   0.55779892]
+ [-0.42846879,  0.80742209,  0.35712716]
+ [-0.05913052,  0.59056998, -0.22104189]]
+
+### test of the aggregation
+assert(r_gcn[0, 0] == L_0_rels[0, 1, 0] + L_0_rels[0, 2, 0] + L_0_rels[0, 3, 0] + L_0_rels[0, 4, 0] + 
+       L_0_rels[1, 3, 0])
 ```
+vector 업데이트는 각 relation 1, relation 2 의 합으로 이루어짐. 식으로 나타내면 다음과 같음.
+![r_gcn](./gnn_images/r_gcn.png)  
+hidden feature h_i^l+1 는 E_ij(different types of edges between the nodes i and j)와 이웃 노드들의
+hidden feature 들과의 관계로 업데이트 됨. R-GCN 은 node classification 이나 link prediction 에서 좋은 성능을 보임
+
+
+
+
+
 
 
 
